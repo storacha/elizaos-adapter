@@ -1,0 +1,16 @@
+{
+    "id": "test-agent",
+    "name": "Test Agent",
+    "description": "A test agent using Storacha adapter",
+    "personality": "Helpful and friendly test agent",
+    "capabilities": ["chat", "memory-management"],
+    "clients": [],
+    "storage": {
+        "type": "storacha",
+        "config": {
+            "delegation": "${STORACHA_DELEGATION}",
+            "storachaAgentPrivateKey": "${STORACHA_AGENT_PRIVATE_KEY}",
+            "gateway": "${GATEWAY:-https://w3s.link/ipfs}"
+        }
+    }
+}

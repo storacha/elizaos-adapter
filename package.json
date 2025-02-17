@@ -1,0 +1,55 @@
+{
+  "name": "@storacha/elizaos-adapter",
+  "version": "0.1.0",
+  "description": "Storacha database adapter for ElizaOS",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint . --ext .ts",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "eliza",
+    "database",
+    "storacha",
+    "adapter"
+  ],
+  "author": "Storacha",
+  "license": "MIT",
+  "dependencies": {
+    "@elizaos/core": "^0.1.9",
+    "@ipld/car": "^5.4.0",
+    "@ucanto/core": "^10.3.0",
+    "@ucanto/principal": "^9.0.0",
+    "@web3-storage/w3up-client": "17.1.2",
+    "multiformats": "^13.3.2",
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/storacha/elizaos-adapter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/storacha/elizaos-adapter/issues"
+  },
+  "homepage": "https://github.com/storacha/elizaos-adapter#readme"
+}
