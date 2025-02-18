@@ -24,7 +24,7 @@ import * as Signer from '@ucanto/principal/ed25519'
 import { parseDelegation } from "./utils.js";
 import { CID } from 'multiformats';
 
-export class StorachaAdapter implements IDatabaseAdapter {
+export class StorachaDatabaseAdapter implements IDatabaseAdapter {
     private storachaClient!: Storacha.Client;
     private storachaConfig: StorachaConfig;
     private indexes: Map<string, { cid: string; data: any }> = new Map();
@@ -35,16 +35,6 @@ export class StorachaAdapter implements IDatabaseAdapter {
      * Not used in StorachaAdapter as all operations are handled through storachaClient.
      */
     public db: any;
-
-    /**
-     * Ensures a UUID string is available, generating a new one if undefined
-     * @param id - Optional UUID string to validate
-     * @returns A valid UUID string
-     */
-    private ensureUUID(id?: string): string {
-        if (id) return id;
-        return crypto.randomUUID();
-    }
 
     constructor(config: StorachaConfig) {
         this.storachaConfig = config;

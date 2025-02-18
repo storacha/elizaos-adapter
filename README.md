@@ -71,11 +71,10 @@ pnpm add @storacha/adapter-storacha
  
 -        db = initializeDatabase(dataDir) as IDatabaseAdapter &
 -            IDatabaseCacheAdapter;
-+        db = new StorachaAdapter({
-+            delegation: process.env.STORACHA_DELEGATION!,
-+            storachaAgentPrivateKey: process.env.STORACHA_AGENT_PRIVATE_KEY!,
-+            gateway: process.env.GATEWAY!,
-+            agentId: 'your-agent-id',
++        db = new StorachaDatabaseAdapter({
++            delegation: process.env.STORACHA_DELEGATION,
++            storachaAgentPrivateKey: process.env.STORACHA_AGENT_PRIVATE_KEY,
++            gateway: process.env.GATEWAY || 'https://w3s.link/ipfs',
 +        });
  
          await db.init();
@@ -100,8 +99,8 @@ GATEWAY=https://w3s.link/ipfs                  # Custom IPFS gateway if needed
 
 ## Roadmap & Features
 
-- [ ] Create Memory Storage Adapter for ElizaOS
-- [ ] Integrate with Storacha Client Using Existing Delegation and Free Quota
+- [x] Create Memory Storage Adapter for ElizaOS
+- [x] Integrate with Storacha Client Using Existing Delegation
 - [ ] Implement Agent Data Sharing Mechanisms
 - [ ] Provide Developer Documentation
 - [ ] Make It Work with ElizaOS

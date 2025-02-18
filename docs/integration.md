@@ -21,7 +21,7 @@ Example of how a developer can use ElizaOS with Storacha:
 
 ```typescript
 import { Agent } from '@elizaos/core';
-import { StorachaAdapter } from '@storacha/elizaos-adapter';
+import { StorachaDatabaseAdapter } from '@storacha/elizaos-adapter';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -29,11 +29,10 @@ dotenv.config();
 const myAgentId = 'my-agent';
 
 // 1. Set up long-term storage
-const adapter = new StorachaAdapter({
+const adapter = new StorachaDatabaseAdapter({
     delegation: process.env.STORACHA_DELEGATION,
     storachaAgentPrivateKey: process.env.STORACHA_AGENT_PRIVATE_KEY,
     gateway: process.env.GATEWAY || 'https://w3s.link/ipfs',
-    agentId: myAgentId
 });
 
 // Initialize the adapter
