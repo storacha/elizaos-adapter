@@ -1,6 +1,7 @@
 {
   "name": "@storacha/elizaos-adapter",
   "version": "0.1.0",
+  "type": "module",
   "description": "Storacha database adapter for ElizaOS",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -37,6 +38,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "@types/node-fetch": "^2.6.12",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.0.0",

@@ -1,6 +1,6 @@
 import {
-    type IDatabaseAdapter,
     type UUID,
+    type IDatabaseAdapter,
     type Account,
     type Memory,
     type Actor,
@@ -16,16 +16,16 @@ import {
     type MemoryIndex,
     type RootIndex,
     CollectionIndex
-} from "./types";
+} from "./types.js";
 import fetch from "node-fetch";
 import { StoreMemory } from '@web3-storage/w3up-client/stores/memory'
 import * as Storacha from '@web3-storage/w3up-client';
 import * as Signer from '@ucanto/principal/ed25519'
-import { parseDelegation } from "./utils";
+import { parseDelegation } from "./utils.js";
 import { CID } from 'multiformats';
 
 export class StorachaAdapter implements IDatabaseAdapter {
-    private storachaClient: Storacha.Client;
+    private storachaClient!: Storacha.Client;
     private storachaConfig: StorachaConfig;
     private indexes: Map<string, { cid: string; data: any }> = new Map();
     private gateway: string;
@@ -35,6 +35,16 @@ export class StorachaAdapter implements IDatabaseAdapter {
      * Not used in StorachaAdapter as all operations are handled through storachaClient.
      */
     public db: any;
+
+    /**
+     * Ensures a UUID string is available, generating a new one if undefined
+     * @param id - Optional UUID string to validate
+     * @returns A valid UUID string
+     */
+    private ensureUUID(id?: string): string {
+        if (id) return id;
+        return crypto.randomUUID();
+    }
 
     constructor(config: StorachaConfig) {
         this.storachaConfig = config;
@@ -140,15 +150,24 @@ export class StorachaAdapter implements IDatabaseAdapter {
                 }
             }
 
-            // If index doesn't exist, create a new one
-            const newIndex = {
+            // Create a new index with the correct structure
+            const newIndex: CollectionIndex<any> = {
                 items: [],
                 lastUpdated: new Date(),
-            } as T;
-            return newIndex;
+                lastSequence: 0,
+                rootCid: undefined
+            };
+            return newIndex as T;
         } catch (err) {
             elizaLogger.error("Error getting index:", err);
-            return { items: [], lastUpdated: new Date() } as T;
+            // Create a new index with the correct structure
+            const defaultIndex: CollectionIndex<any> = {
+                items: [],
+                lastUpdated: new Date(),
+                lastSequence: 0,
+                rootCid: undefined
+            };
+            return defaultIndex as T;
         }
     }
 
@@ -727,6 +746,20 @@ export class StorachaAdapter implements IDatabaseAdapter {
     }
 
     /**
+     * Creates a new room with an optional predefined ID
+     * @param roomId - Optional predefined room identifier
+     * @returns Promise containing the room's UUID
+     */
+    async createRoom(roomId?: UUID): Promise<UUID> {
+        try {
+            return roomId ?? crypto.randomUUID();
+        } catch (err) {
+            elizaLogger.error("Error creating room:", err);
+            throw err;
+        }
+    }
+
+    /**
      * Retrieves a room by its ID
      * @param roomId - Room identifier
      * @returns Promise containing room UUID or null if not found
@@ -738,22 +771,6 @@ export class StorachaAdapter implements IDatabaseAdapter {
         } catch (err) {
             elizaLogger.error("Error getting room:", err);
             return null;
-        }
-    }
-
-    /**
-     * Creates a new room with an optional predefined ID
-     * @param roomId - Optional predefined room identifier
-     * @returns Promise containing the room's UUID
-     * @throws Error if room creation fails
-     */
-    async createRoom(roomId?: UUID): Promise<UUID> {
-        try {
-            // Implement room creation
-            return roomId || crypto.randomUUID() as UUID;
-        } catch (err) {
-            elizaLogger.error("Error creating room:", err);
-            throw err;
         }
     }
 
@@ -1034,5 +1051,6 @@ export class StorachaAdapter implements IDatabaseAdapter {
             elizaLogger.error("Error clearing knowledge:", err);
         }
     }
+
 }
 

@@ -1,10 +1,10 @@
-import { type UUID, type Memory } from "@elizaos/core";
+import { type UUID,type Memory } from "@elizaos/core";
 
 /**
  * Basic index entry for storing items
  */
 export interface IndexEntry {
-    id: UUID;
+    id: UUID | undefined;
     cid: string;
     filename: string;
     roomId?: UUID;
@@ -31,7 +31,7 @@ export interface CollectionIndex<T> {
  */
 export interface MemoryIndex extends CollectionIndex<Memory> {
     embeddings?: {
-        id: UUID;
+        id: UUID | undefined;
         vector: number[];
     }[];
 }
