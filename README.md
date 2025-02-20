@@ -44,9 +44,9 @@ pnpm install --no-frozen-lockfile
 pnpm build
 ```
 
-### Install the Storacha Adapter
+### Install the Storacha Database Adapter
 
-#### Install in ElizaOS Workspace (Recommended)
+#### Install in ElizaOS Workspace
 
 1. Install the Storacha package
 ```bash
@@ -80,6 +80,8 @@ pnpm add @storacha/adapter-storacha
          await db.init();
 ```
 
+If you are using the [Eliza Starter Kit](https://github.com/elizaOS/eliza-starter) follow [these instructions](/docs/integration.md#).
+
 ### Configure Environment Variables
 
 1. Copy the example environment file:
@@ -91,20 +93,17 @@ cp .env.example .env
 ```env
 # Required Configuration
 STORACHA_DELEGATION=your-delegation-token      # Get from storacha.network
-STORACHA_AGENT_PRIVATE_KEY=your-private-key    # Your agent's Ed25519 private key
-
-# Optional Configuration
-GATEWAY=https://w3s.link/ipfs                  # Custom IPFS gateway if needed
+STORACHA_AGENT_PRIVATE_KEY=your-private-key    # Your agent's Ed25519 private key (w3 key create command)
 ```
 
 ## Roadmap & Features
 
 - [x] Create Memory Storage Adapter for ElizaOS
 - [x] Integrate with Storacha Client Using Existing Delegation
-- [ ] Implement Agent Data Sharing Mechanisms
-- [ ] Provide Developer Documentation
-- [ ] Make It Work with ElizaOS
+- [x] Provide Developer Documentation
+- [ ] Make It Work with ElizaOS and ElizaStarter
 - [ ] Add GitHub SSO Onboarding and Free-Tier Storage via Stripe
+- [ ] Implement Agent Data Sharing Mechanisms
 - [ ] Add Encrypted Agent Storage with Lit Protocol
 - [ ] Handle Mutability for Stored Data
 

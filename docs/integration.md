@@ -31,8 +31,7 @@ const myAgentId = 'my-agent';
 // 1. Set up long-term storage
 const adapter = new StorachaDatabaseAdapter({
     delegation: process.env.STORACHA_DELEGATION,
-    storachaAgentPrivateKey: process.env.STORACHA_AGENT_PRIVATE_KEY,
-    gateway: process.env.GATEWAY || 'https://w3s.link/ipfs',
+    storachaAgentPrivateKey: process.env.STORACHA_AGENT_PRIVATE_KEY
 });
 
 // Initialize the adapter
@@ -81,6 +80,25 @@ const searchResults = await agent.databaseAdapter.searchMemories({
     match_count: 10,
     unique: true
 });
+```
+
+If you are using ElizaOS Starter Kit (https://github.com/elizaOS/eliza-starter/tree/main):
+
+1. Install the Storacha Database Adapter:
+```bash
+pnpm add @storacha/elizaos-adapter
+```
+
+2. Update the [database configuration](https://github.com/elizaOS/eliza-starter/blob/main/src/database/index.ts#L7) to load the Storacha Adapter:
+
+```typescript
+if (process.env.STORACHA_DELEGATION && process.env.STORACHA_AGENT_PRIVATE_KEY) {
+    const db = new StorachaDatabaseAdapter({
+      delegation: process.env.STORACHA_DELEGATION,
+      storachaAgentPrivateKey: process.env.STORACHA_AGENT_PRIVATE_KEY
+    });
+    return db;
+  } else if ...
 ```
 
 Key Features of the Storacha Adapter:

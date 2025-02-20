@@ -69,7 +69,7 @@ export interface StorachaConfig {
      * The gateway to use for fetching data from the network.
      * By default, it uses the Storacha public gateway: https://w3s.link, but you can use any trustless gateway you 
      */
-    gateway: string;
+    gateway?: string;
     /**
      * The CID of the root index for sharing history.
      * If you want to share history across multiple agents, you can use the same root index CID.

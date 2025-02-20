@@ -10,6 +10,7 @@ import {
     type Relationship,
     type RAGKnowledgeItem,
     elizaLogger,
+    IDatabaseCacheAdapter,
 } from "@elizaos/core";
 import {
     type StorachaConfig,
@@ -24,23 +25,31 @@ import * as Signer from '@ucanto/principal/ed25519'
 import { parseDelegation } from "./utils.js";
 import { CID } from 'multiformats';
 
-export class StorachaDatabaseAdapter implements IDatabaseAdapter {
+export class StorachaDatabaseAdapter implements IDatabaseAdapter, IDatabaseCacheAdapter {
     private storachaClient!: Storacha.Client;
     private storachaConfig: StorachaConfig;
     private indexes: Map<string, { cid: string; data: any }> = new Map();
     private gateway: string;
-    private rootIndexCID: string | null = null;
+    private rootIndexCID: string | undefined;
     /**
      * Database instance required by IDatabaseAdapter interface.
      * Not used in StorachaAdapter as all operations are handled through storachaClient.
      */
     public db: any;
 
+    /**
+     * Cache-related properties
+     */
+    private cache: Map<string, { value: string; timestamp: number }> = new Map();
+    private cacheTTL: number = 3600000; // 1 hour in milliseconds
+
     constructor(config: StorachaConfig) {
         this.storachaConfig = config;
         this.gateway = config.gateway || "https://w3s.link/ipfs";
-        this.rootIndexCID = config.rootIndexCID || null;
+        this.rootIndexCID = config.rootIndexCID;
         this.db = {}; // Initialize with empty object, but it's not used
+        // Initialize cache cleanup interval
+        setInterval(() => this.cleanupCache(), 300000); // Run every 5 minutes
     }
 
     /**
@@ -58,14 +67,16 @@ export class StorachaDatabaseAdapter implements IDatabaseAdapter {
             const principal = Signer.parse(this.storachaConfig.storachaAgentPrivateKey)
             const store = new StoreMemory()
             const client = await Storacha.create({ principal, store })
+            elizaLogger.info("Storacha client created.");
 
-            elizaLogger.info("Parsing delegation proof...");
             if (!this.storachaConfig.delegation) {
                 throw new Error("Delegation is missing from the configuration");
             }
-            const delegation = await parseDelegation(this.storachaConfig.delegation);
-            await client.addProof(delegation);
-
+            elizaLogger.info("Loading delegation proof...");
+            const delegationProof = await parseDelegation(this.storachaConfig.delegation);
+            const space = await client.addSpace(delegationProof);
+            await client.setCurrentSpace(space.did())
+            elizaLogger.info("Delegation proof loaded.");
             this.storachaClient = client;
 
             elizaLogger.success("Storacha adapter initialized successfully.");
@@ -77,6 +88,57 @@ export class StorachaDatabaseAdapter implements IDatabaseAdapter {
 
     async close(): Promise<void> {
         // Nothing to close in a distributed storage system
+    }
+
+    // IDatabaseCacheAdapter implementation
+    async getCache(params: { agentId: UUID; key: string; }): Promise<string | undefined> {
+        const cacheKey = `${params.agentId}:${params.key}`;
+        const cached = this.cache.get(cacheKey);
+
+        if (!cached) {
+            return undefined;
+        }
+
+        // Check if cache has expired
+        if (Date.now() - cached.timestamp > this.cacheTTL) {
+            this.cache.delete(cacheKey);
+            return undefined;
+        }
+
+        return cached.value;
+    }
+
+    async setCache(params: { agentId: UUID; key: string; value: string; }): Promise<boolean> {
+        try {
+            const cacheKey = `${params.agentId}:${params.key}`;
+            this.cache.set(cacheKey, {
+                value: params.value,
+                timestamp: Date.now()
+            });
+            return true;
+        } catch (err) {
+            elizaLogger.error("Error setting cache:", err);
+            return false;
+        }
+    }
+
+    async deleteCache(params: { agentId: UUID; key: string; }): Promise<boolean> {
+        try {
+            const cacheKey = `${params.agentId}:${params.key}`;
+            return this.cache.delete(cacheKey);
+        } catch (err) {
+            elizaLogger.error("Error deleting cache:", err);
+            return false;
+        }
+    }
+
+    private cleanupCache(): void {
+        const now = Date.now();
+        for (const [key, value] of this.cache.entries()) {
+            if (now - value.timestamp > this.cacheTTL) {
+                this.cache.delete(key);
+            }
+        }
     }
 
     /**
@@ -418,7 +480,6 @@ export class StorachaDatabaseAdapter implements IDatabaseAdapter {
      */
     async getMemoryById(id: UUID): Promise<Memory | null> {
         try {
-            // Search through all memory indexes
             const indexNames = Array.from(this.indexes.keys())
                 .filter(name => name.startsWith("memories-"));
 
