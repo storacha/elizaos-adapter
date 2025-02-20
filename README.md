@@ -81,6 +81,7 @@ pnpm add @storacha/adapter-storacha
 ```
 
 If you are using the [Eliza Starter Kit](https://github.com/elizaOS/eliza-starter) follow [these instructions](https://github.com/storacha/elizaos-adapter/blob/main/docs/integration.md#how-to-use-eliza-starter-with-storacha).
+This is the current working version of the Starter Kit: https://github.com/storacha/eliza-starter
 
 ### Configure Environment Variables
 
