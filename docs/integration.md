@@ -1,8 +1,10 @@
 ### Research Notes & Implementation Notes
 
-Goal: Integrate Storacha storage into ElizaOS framework.
+#### Goal
 
-ElizaOS is a framework for building intelligent agents that can:
+Integrate Storacha storage into ElizaOS framework.
+
+#### ElizaOS is a framework for building intelligent agents that can
 
 1. **Core Capabilities**
    - Maintain conversations with users
@@ -17,7 +19,7 @@ ElizaOS is a framework for building intelligent agents that can:
    - **Core Engine**: Manages agent behavior and processing
    - **Memory Management**: Handles both short and long-term memory with vector search
 
-Example of how a developer can use ElizaOS with Storacha:
+#### How to use ElizaOS with Storacha
 
 ```typescript
 import { Agent } from '@elizaos/core';
@@ -82,14 +84,16 @@ const searchResults = await agent.databaseAdapter.searchMemories({
 });
 ```
 
-If you are using ElizaOS Starter Kit (https://github.com/elizaOS/eliza-starter/tree/main):
+#### How to use Eliza Starter with Storacha
 
-1. Install the Storacha Database Adapter:
+1. Checkout the latest version of the [Eliza Starter](https://github.com/elizaOS/eliza-starter/tree/main).
+
+2. Install the Storacha Database Adapter:
 ```bash
 pnpm add @storacha/elizaos-adapter
 ```
 
-2. Update the [database configuration](https://github.com/elizaOS/eliza-starter/blob/main/src/database/index.ts#L7) to load the Storacha Adapter:
+3. Update the [database configuration](https://github.com/elizaOS/eliza-starter/blob/main/src/database/index.ts#L7) to load the Storacha Adapter:
 
 ```typescript
 if (process.env.STORACHA_DELEGATION && process.env.STORACHA_AGENT_PRIVATE_KEY) {
@@ -101,13 +105,13 @@ if (process.env.STORACHA_DELEGATION && process.env.STORACHA_AGENT_PRIVATE_KEY) {
   } else if ...
 ```
 
-Key Features of the Storacha Adapter:
+#### Key Features of the Storacha Adapter
 1. **Decentralized Storage**: Uses IPFS/Storacha for permanent content storage
 2. **Immutable History**: All content is content-addressed and immutable
 3. **Sharing**: Easy sharing between agents via root index CID
 4. **Chronological Ordering**: Maintains sequence numbers for strict ordering
 
-Storage Architecture in Storacha Adapter:
+#### Storage Architecture in Storacha Adapter
 
 1. **Root Index**
    - Maps collection names to their latest CIDs
@@ -272,7 +276,7 @@ async removeMemory(memoryId: UUID, tableName: string): Promise<void> {
 }
 ```
 
-Sharing Between Agents:
+#### Sharing Between Agents
 ```typescript
 // Agent A creates and populates storage
 const agentA = new Agent({
