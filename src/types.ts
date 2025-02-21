@@ -57,7 +57,7 @@ export interface StorageClientConfig {
      * - https://docs.storacha.network/concepts/ucan/#delegate-across-apps-and-services
      * - https://github.com/storacha/upload-service/blob/main/packages/cli/README.md#storacha-delegation-create-audience-did
      */
-    delegation: string;
+    agentDelegation: string;
     /**
      * The private key of the agent that is used to sign the data before uploading to the Storacha network.
      * You can install and sign up for a Storacha account using the CLI https://docs.storacha.network/w3cli

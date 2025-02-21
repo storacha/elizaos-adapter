@@ -69,14 +69,14 @@ export class DatabaseAdapter implements IDatabaseAdapter, IDatabaseCacheAdapter 
             const client = await Storage.create({ principal, store })
             elizaLogger.info("Database client created.");
 
-            if (!this.clientConfig.delegation) {
-                throw new Error("Delegation is missing from the configuration");
+            if (!this.clientConfig.agentDelegation) {
+                throw new Error("Agent delegation is missing from the configuration");
             }
-            elizaLogger.info("Loading delegation proof...");
-            const delegationProof = await parseDelegation(this.clientConfig.delegation);
+            elizaLogger.info("Loading agent delegation proof...");
+            const delegationProof = await parseDelegation(this.clientConfig.agentDelegation);
             const space = await client.addSpace(delegationProof);
             await client.setCurrentSpace(space.did())
-            elizaLogger.info("Delegation proof loaded.");
+            elizaLogger.info("Agent delegation proof loaded.");
             this.client = client;
 
                 elizaLogger.success("Database adapter initialized successfully.");
