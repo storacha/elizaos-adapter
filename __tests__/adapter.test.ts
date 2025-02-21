@@ -70,7 +70,7 @@ async function createTestAgent() {
     const principal = await Signer.generate();
     return {
         agentPrivateKey: principal.signer.verifier,
-        delegation: await principal.delegation()
+        agentDelegation: await principal.delegation()
     }
 }
 
@@ -79,7 +79,7 @@ describe("DatabaseAdapter", () => {
 
     beforeEach(() => {
         adapter = new DatabaseAdapter({
-            delegation: "test-delegation",
+            agentDelegation: "test-delegation",
             agentPrivateKey: "test-private-key",
             gateway: "https://test.gateway.com",
         });
@@ -97,7 +97,7 @@ describe("DatabaseAdapter", () => {
 
         it("should throw error if delegation is missing", async () => {
             adapter = new DatabaseAdapter({
-                delegation: "",
+                agentDelegation: "",
                 agentPrivateKey: "test-private-key",
                 gateway: "https://test.gateway.com",
             });
@@ -203,7 +203,7 @@ describe("DatabaseAdapter", () => {
         beforeEach(async () => {
             // Set up Agent A (original data owner)
             agentAAdapter = new DatabaseAdapter({
-                delegation: "agent-a-delegation",
+                agentDelegation: "agent-a-delegation",
                 agentPrivateKey: "agent-a-private-key",
                 gateway: "https://test.gateway.com",
             });
@@ -211,7 +211,7 @@ describe("DatabaseAdapter", () => {
 
             // Set up Agent B (data consumer) with Agent A's root CID
             agentBAdapter = new DatabaseAdapter({
-                delegation: "agent-b-delegation",
+                agentDelegation: "agent-b-delegation",
                 agentPrivateKey: "agent-b-private-key",
                 gateway: "https://test.gateway.com",
                 rootIndexCID: sharedRootCID // Using Agent A's root CID
