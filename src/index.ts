@@ -13,27 +13,27 @@ import {
     IDatabaseCacheAdapter,
 } from "@elizaos/core";
 import {
-    type StorachaConfig,
+    type StorageClientConfig,
     type MemoryIndex,
     type RootIndex,
     CollectionIndex
 } from "./types.js";
 import fetch from "node-fetch";
 import { StoreMemory } from '@web3-storage/w3up-client/stores/memory'
-import * as Storacha from '@web3-storage/w3up-client';
+import * as Storage from '@web3-storage/w3up-client';
 import * as Signer from '@ucanto/principal/ed25519'
 import { parseDelegation } from "./utils.js";
 import { CID } from 'multiformats';
 
-export class StorachaDatabaseAdapter implements IDatabaseAdapter, IDatabaseCacheAdapter {
-    private storachaClient!: Storacha.Client;
-    private storachaConfig: StorachaConfig;
+export class DatabaseAdapter implements IDatabaseAdapter, IDatabaseCacheAdapter {
+    private client!: Storage.Client;
+    private clientConfig: StorageClientConfig;
     private indexes: Map<string, { cid: string; data: any }> = new Map();
     private gateway: string;
     private rootIndexCID: string | undefined;
     /**
      * Database instance required by IDatabaseAdapter interface.
-     * Not used in StorachaAdapter as all operations are handled through storachaClient.
+     * Not used in DatabaseAdapter as all operations are handled through client.
      */
     public db: any;
 
@@ -43,9 +43,9 @@ export class StorachaDatabaseAdapter implements IDatabaseAdapter, IDatabaseCache
     private cache: Map<string, { value: string; timestamp: number }> = new Map();
     private cacheTTL: number = 3600000; // 1 hour in milliseconds
 
-    constructor(config: StorachaConfig) {
-        this.storachaConfig = config;
-        this.gateway = config.gateway || "https://w3s.link/ipfs";
+    constructor(config: StorageClientConfig) {
+        this.clientConfig = config;
+        this.gateway = config.gateway || "https://w3s.link";
         this.rootIndexCID = config.rootIndexCID;
         this.db = {}; // Initialize with empty object, but it's not used
         // Initialize cache cleanup interval
@@ -53,35 +53,35 @@ export class StorachaDatabaseAdapter implements IDatabaseAdapter, IDatabaseCache
     }
 
     /**
-     * Initializes the Storacha adapter with the provided configuration
-     * Sets up the client and delegation that authorizes the Agent to upload data to the Storacha network.
+     * Initializes the Database adapter with the provided configuration
+     * Sets up the storage client and delegation that authorizes the Agent to upload data to the Storacha network.
      *
      * @throws Error if connection fails or delegation is missing/invalid
      */
     async init(): Promise<void> {
         try {
-            elizaLogger.info("Initializing Storacha adapter...");
-            if (!this.storachaConfig.storachaAgentPrivateKey) {
-                throw new Error("Storacha agent private key is missing from the configuration");
+            elizaLogger.info("Initializing Database adapter...");
+            if (!this.clientConfig.agentPrivateKey) {
+                throw new Error("Agent private key is missing from the configuration");
             }
-            const principal = Signer.parse(this.storachaConfig.storachaAgentPrivateKey)
+            const principal = Signer.parse(this.clientConfig.agentPrivateKey)
             const store = new StoreMemory()
-            const client = await Storacha.create({ principal, store })
-            elizaLogger.info("Storacha client created.");
+            const client = await Storage.create({ principal, store })
+            elizaLogger.info("Database client created.");
 
-            if (!this.storachaConfig.delegation) {
-                throw new Error("Delegation is missing from the configuration");
+            if (!this.clientConfig.agentDelegation) {
+                throw new Error("Agent delegation is missing from the configuration");
             }
-            elizaLogger.info("Loading delegation proof...");
-            const delegationProof = await parseDelegation(this.storachaConfig.delegation);
+            elizaLogger.info("Loading agent delegation proof...");
+            const delegationProof = await parseDelegation(this.clientConfig.agentDelegation);
             const space = await client.addSpace(delegationProof);
             await client.setCurrentSpace(space.did())
-            elizaLogger.info("Delegation proof loaded.");
-            this.storachaClient = client;
+            elizaLogger.info("Agent delegation proof loaded.");
+            this.client = client;
 
-            elizaLogger.success("Storacha adapter initialized successfully.");
+                elizaLogger.success("Database adapter initialized successfully.");
         } catch (err) {
-            elizaLogger.error("Storacha initialization error:", err);
+            elizaLogger.error("Database initialization error:", err);
             throw err;
         }
     }
@@ -149,7 +149,7 @@ export class StorachaDatabaseAdapter implements IDatabaseAdapter, IDatabaseCache
     private async getRootIndex(): Promise<RootIndex> {
         try {
             if (this.rootIndexCID) {
-                const response = await fetch(`${this.gateway}/${this.rootIndexCID}/root.json`);
+                const response = await fetch(`${this.gateway}/ipfs/${this.rootIndexCID}/root.json`);
                 if (response.ok) {
                     return response.json();
                 }
@@ -171,7 +171,7 @@ export class StorachaDatabaseAdapter implements IDatabaseAdapter, IDatabaseCache
         const rootIndexData = JSON.stringify(rootIndex);
         const rootIndexBlob = new Blob([rootIndexData], { type: 'application/json' });
         const rootIndexFile = new File([rootIndexBlob], 'root.json', { type: 'application/json' });
-        const link = await this.storachaClient.uploadDirectory([rootIndexFile]);
+        const link = await this.client.uploadDirectory([rootIndexFile]);
         const cid = link.toString();
         this.rootIndexCID = cid;
         return cid;
@@ -194,7 +194,7 @@ export class StorachaDatabaseAdapter implements IDatabaseAdapter, IDatabaseCache
             const collectionInfo = rootIndex.collections[name];
 
             if (collectionInfo) {
-                const response = await fetch(`${this.gateway}/${collectionInfo.cid}/index.json`);
+                const response = await fetch(`${this.gateway}/ipfs/${collectionInfo.cid}/index.json`);
                 if (response.ok) {
                     const index = await response.json();
                     this.indexes.set(name, { cid: collectionInfo.cid, data: index });
@@ -224,7 +224,7 @@ export class StorachaDatabaseAdapter implements IDatabaseAdapter, IDatabaseCache
     }
 
     /**
-     * Updates the index file for a collection in Storacha with chronological ordering
+     * Updates the index file for a collection in hot storage with chronological ordering
      * @param name - The name of the collection index to update
      * @param index - The index data to store
      * @throws Error if index update fails
@@ -246,7 +246,7 @@ export class StorachaDatabaseAdapter implements IDatabaseAdapter, IDatabaseCache
         const indexBlob = new Blob([indexData], { type: 'application/json' });
         const indexFile = new File([indexBlob], 'index.json', { type: 'application/json' });
 
-        const link = await this.storachaClient.uploadDirectory([indexFile]);
+        const link = await this.client.uploadDirectory([indexFile]);
         const cid = link.toString();
 
         // Update in-memory cache
@@ -270,7 +270,7 @@ export class StorachaDatabaseAdapter implements IDatabaseAdapter, IDatabaseCache
      * @throws Error if the gateway request fails
      */
     private async fetchFromGateway(cid: string, filename: string): Promise<any> {
-        const response = await fetch(`${this.gateway}/${cid}/${filename}`);
+        const response = await fetch(`${this.gateway}/ipfs/${cid}/${filename}`);
         if (!response.ok) {
             throw new Error(`Failed to fetch from gateway: ${response.statusText}`);
         }
@@ -299,7 +299,7 @@ export class StorachaDatabaseAdapter implements IDatabaseAdapter, IDatabaseCache
             const memoryData = JSON.stringify(memory);
             const memoryBlob = new Blob([memoryData], { type: 'application/json' });
             const memoryFile = new File([memoryBlob], filename, { type: 'application/json' });
-            const link = await this.storachaClient.uploadDirectory([memoryFile]);
+            const link = await this.client.uploadDirectory([memoryFile]);
             const cid = link.toString();
 
             // Update the index
@@ -675,8 +675,8 @@ export class StorachaDatabaseAdapter implements IDatabaseAdapter, IDatabaseCache
 
                 // Note: The content stored in IPFS is immutable and cannot be deleted
                 // The memory is effectively removed by removing it from the index, making it inaccessible,
-                // and the CID will not be reused. We can remove from Storacha hot storage, but not from IPFS.
-                await this.storachaClient.remove(CID.parse(item.cid));
+                // and the CID will not be reused. We can remove from hot storage, but not from IPFS.
+                await this.client.remove(CID.parse(item.cid));
 
                 elizaLogger.info(`Memory ${memoryId} removed from index ${tableName}`);
             } else {
