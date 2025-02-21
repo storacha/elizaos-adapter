@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { StorachaAdapter } from "../src";
+import { DatabaseAdapter } from "../src";
 import type { Memory, UUID } from "@elizaos/core";
 import * as Storacha from '@web3-storage/w3up-client';
+import { Signer } from "@ucanto/principal/ed25519";
 
 // Mock the w3up-client
 vi.mock('@web3-storage/w3up-client', () => ({
@@ -65,15 +66,22 @@ vi.mock('node-fetch', () => ({
     Response
 }));
 
-describe("StorachaAdapter", () => {
-    let adapter: StorachaAdapter;
+async function createTestAgent() {
+    const principal = await Signer.generate();
+    return {
+        agentPrivateKey: principal.signer.verifier,
+        delegation: await principal.delegation()
+    }
+}
+
+describe("DatabaseAdapter", () => {
+    let adapter: DatabaseAdapter;
 
     beforeEach(() => {
-        adapter = new StorachaAdapter({
+        adapter = new DatabaseAdapter({
             delegation: "test-delegation",
-            storachaAgentPrivateKey: "test-private-key",
+            agentPrivateKey: "test-private-key",
             gateway: "https://test.gateway.com",
-            agentId: "agent-123" as UUID
         });
     });
 
@@ -88,11 +96,10 @@ describe("StorachaAdapter", () => {
         });
 
         it("should throw error if delegation is missing", async () => {
-            adapter = new StorachaAdapter({
+            adapter = new DatabaseAdapter({
                 delegation: "",
-                storachaAgentPrivateKey: "test-private-key",
+                agentPrivateKey: "test-private-key",
                 gateway: "https://test.gateway.com",
-                agentId: "agent-123" as UUID
             });
             await expect(adapter.init()).rejects.toThrow("Delegation is missing");
         });
@@ -188,27 +195,25 @@ describe("StorachaAdapter", () => {
         });
     });
 
-    describe("Shared Root CID", () => {
-        let agentAAdapter: StorachaAdapter;
-        let agentBAdapter: StorachaAdapter;
+    describe("Sharing Data Between Agents", () => {
+        let agentAAdapter: DatabaseAdapter;
+        let agentBAdapter: DatabaseAdapter;
         const sharedRootCID = "bafybeihkoeuql3cf7rw2wmf4rqclj6tlp2m7lqsflkyjm4xjbrlqwwqbym";
 
         beforeEach(async () => {
             // Set up Agent A (original data owner)
-            agentAAdapter = new StorachaAdapter({
+            agentAAdapter = new DatabaseAdapter({
                 delegation: "agent-a-delegation",
-                storachaAgentPrivateKey: "agent-a-private-key",
+                agentPrivateKey: "agent-a-private-key",
                 gateway: "https://test.gateway.com",
-                agentId: "agent-a-123" as UUID
             });
             await agentAAdapter.init();
 
             // Set up Agent B (data consumer) with Agent A's root CID
-            agentBAdapter = new StorachaAdapter({
+            agentBAdapter = new DatabaseAdapter({
                 delegation: "agent-b-delegation",
-                storachaAgentPrivateKey: "agent-b-private-key",
+                agentPrivateKey: "agent-b-private-key",
                 gateway: "https://test.gateway.com",
-                agentId: "agent-b-123" as UUID,
                 rootIndexCID: sharedRootCID // Using Agent A's root CID
             });
             await agentBAdapter.init();
