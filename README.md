@@ -1,6 +1,6 @@
-# @storacha/elizaos-storacha
+# @storacha/elizaos-adapter
 
-Storacha implements a database adapter for [ElizaOS](https://elizaos.github.io/eliza/) that enables decentralized storage of agent data using the Storacha network.
+This project implements a database adapter for [ElizaOS](https://elizaos.github.io/eliza/) that enables decentralized storage of agent data using the Storacha network. Which facilitates data sharing and data redundancy - all data is persisted in Filecoin L1.
 
 ## Overview
 
@@ -10,7 +10,7 @@ Storacha implements a database adapter for [ElizaOS](https://elizaos.github.io/e
 ## Prerequisites
 
 Before getting started, ensure you have:
-- Node.js 23+
+- Node.js 22+
 - pnpm 9+
 - Git for version control
 - A code editor (VS Code recommended)
@@ -20,18 +20,29 @@ Before getting started, ensure you have:
 
 ### Install ElizaOS
 
-1. Clone the repository
+1. Click to create a new repository based on Eliza Starter Kit template
+
+- https://github.com/new?template_name=eliza-starter&template_owner=elizaOS
+
+or checkout the [latest version](https://github.com/elizaOS/eliza-starter/tree/main).
+
+### Set up the Database Adapter
+
+1. Install the Database Adapter:
 ```bash
-git clone https://github.com/elizaos/eliza.git
-cd eliza
+pnpm add @storacha/elizaos-adapter
 ```
 
-2. Switch to latest tagged release
-```bash
-# This project iterates fast, so we recommend checking out the latest release
-git checkout $(git describe --tags --abbrev=0)
-# If the above doesn't work, try:
-# git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
+2. Update the [database configuration](https://github.com/elizaOS/eliza-starter/blob/main/src/database/index.ts#L7) to load the Database Adapter:
+
+```typescript
+if (process.env.STORACHA_AGENT_DELEGATION && process.env.STORACHA_AGENT_PRIVATE_KEY) {
+    const db = new StorachaDatabaseAdapter({
+      agentPrivateKey: process.env.STORACHA_AGENT_PRIVATE_KEY,
+      delegation: process.env.STORACHA_AGENT_DELEGATION,    
+    });
+    return db;
+  } else if ...
 ```
 
 3. Install dependencies
@@ -61,7 +72,7 @@ pnpm add @storacha/adapter-storacha
  import { SlackClientInterface } from "@elizaos/client-slack";
  import { TelegramClientInterface } from "@elizaos/client-telegram";
  import { TwitterClientInterface } from "@elizaos/client-twitter";
-+import { StorachaDatabaseAdapter } from "@storacha/elizaos-adapter";
++import { DatabaseAdapter } from "@storacha/elizaos-adapter";
  import {
      AgentRuntime,
      CacheManager,
@@ -71,17 +82,13 @@ pnpm add @storacha/adapter-storacha
  
 -        db = initializeDatabase(dataDir) as IDatabaseAdapter &
 -            IDatabaseCacheAdapter;
-+        db = new StorachaDatabaseAdapter({
-+            delegation: process.env.STORACHA_DELEGATION,
-+            storachaAgentPrivateKey: process.env.STORACHA_AGENT_PRIVATE_KEY,
-+            gateway: process.env.GATEWAY || 'https://w3s.link/ipfs',
++        db = new DatabaseAdapter({
++            agentPrivateKey: process.env.STORACHA_AGENT_PRIVATE_KEY,
++            delegation: process.env.STORACHA_AGENT_DELEGATION,
 +        });
  
          await db.init();
 ```
-
-If you are using the [Eliza Starter Kit](https://github.com/elizaOS/eliza-starter) follow [these instructions](https://github.com/storacha/elizaos-adapter/blob/main/docs/integration.md#how-to-use-eliza-starter-with-storacha).
-This is the current working version of the Starter Kit: https://github.com/storacha/eliza-starter
 
 ### Configure Environment Variables
 
@@ -89,20 +96,28 @@ This is the current working version of the Starter Kit: https://github.com/stora
 ```bash
 cp .env.example .env
 ```
-
-2. Configure the required variables in your `.env`:
-```env
-# Required Configuration
-STORACHA_DELEGATION=your-delegation-token      # Get from storacha.network
-STORACHA_AGENT_PRIVATE_KEY=your-private-key    # Your agent's Ed25519 private key (w3 key create command)
+2. Generate the `STORACHA_AGENT_PRIVATE_KEY`:
+```bash
+w3 key create
 ```
+- Copy the PK `MgCYJE...Ig3Kk=` and add it to the `STORACHA_AGENT_PRIVATE_KEY`.
+- Copy the Agent DID key: `did:key:...` to create the Agent Delegation.
+
+3. Generate the `STORACHA_AGENT_DELEGATION`:
+- Replace the `AGENT_DID_KEY` with the DID Key you copied in the previous step, and then execute the command:
+```bash
+w3 delegation create AGENT_DID_KEY --can 'store/add' --can 'filecoin/offer' --can 'upload/add' --can 'space/blob/add' --can 'space/index/add' | base64
+```
+- Copy the base64 encoded content, and add to the `STORACHA_AGENT_DELEGATION` environment variable.
+
 
 ## Roadmap & Features
 
 - [x] Create Memory Storage Adapter for ElizaOS
 - [x] Integrate with Storacha Client Using Existing Delegation
+- [x] Data redundancy - all data is stored in Filecoin L1
+- [x] Make It Work with ElizaOS and ElizaStarter
 - [x] Provide Developer Documentation
-- [ ] Make It Work with ElizaOS and ElizaStarter
 - [ ] Add GitHub SSO Onboarding and Free-Tier Storage via Stripe
 - [ ] Implement Agent Data Sharing Mechanisms
 - [ ] Add Encrypted Agent Storage with Lit Protocol
@@ -111,4 +126,3 @@ STORACHA_AGENT_PRIVATE_KEY=your-private-key    # Your agent's Ed25519 private ke
 ## License
 
 MIT & Apache-2.0
-

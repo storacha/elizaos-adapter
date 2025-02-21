@@ -48,7 +48,7 @@ export interface RootIndex {
     }
 }
 
-export interface StorachaConfig {
+export interface StorageClientConfig {
     /**
      * The delegation that authorizes the Agent to upload data to the Storacha network.
      * This is the base64 encoded delegation string.
@@ -59,12 +59,12 @@ export interface StorachaConfig {
      */
     delegation: string;
     /**
-     * The private key of the Storacha agent that is used to sign the data before uploading to the Storacha network.
+     * The private key of the agent that is used to sign the data before uploading to the Storacha network.
      * You can install and sign up for a Storacha account using the CLI https://docs.storacha.network/w3cli
      * And then create a private key for your agent:
      * - https://github.com/storacha/upload-service/blob/main/packages/cli/README.md#storacha-agent-create-private-key
      */
-    storachaAgentPrivateKey: string;
+    agentPrivateKey: string;
     /**
      * The gateway to use for fetching data from the network.
      * By default, it uses the Storacha public gateway: https://w3s.link, but you can use any trustless gateway you 
