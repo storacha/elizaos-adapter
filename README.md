@@ -54,7 +54,7 @@ pnpm add @storacha/adapter-storacha
 ```
 
 2. Add the Storacha Adapter to the agent runtime
-```
+```diff
 --- a/agent/src/index.ts
 +++ b/agent/src/index.ts
 @@ -7,6 +7,7 @@ import { LensAgentClient } from "@elizaos/client-lens";
