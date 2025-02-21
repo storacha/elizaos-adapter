@@ -1,6 +1,6 @@
 # @storacha/elizaos-adapter
 
-This project implements a database adapter for [ElizaOS](https://elizaos.github.io/eliza/) that enables decentralized storage of agent data using the Storacha network. Which facilitates data sharing and data redundancy - all data is persisted in Filecoin L1.
+This project implements a database adapter for [ElizaOS](https://elizaos.github.io/eliza/) that enables decentralized storage of agent data using the Storacha network.
 
 ## Overview
 
