@@ -49,69 +49,10 @@ Ensure you have the following before getting started:
 
 Steps required only if you are starting with a fresh version of the main [Eliza Starter Kit](https://github.com/storacha/eliza-starter).
 
-In this case you still need to integrate the Database Adapter into the Agent Runtime by following the steps:
-
-1. Install the Database Adapter:
-```bash
-pnpm add @storacha/elizaos-adapter
-```
-
-2. Update the [database configuration](https://github.com/elizaOS/eliza-starter/blob/main/src/database/index.ts#L7) to load the Database Adapter:
-
-```typescript
-if (process.env.STORACHA_AGENT_DELEGATION && process.env.STORACHA_AGENT_PRIVATE_KEY) {
-    const db = new StorachaDatabaseAdapter({
-      agentPrivateKey: process.env.STORACHA_AGENT_PRIVATE_KEY,
-      delegation: process.env.STORACHA_AGENT_DELEGATION,    
-    });
-    return db;
-  } else if ...
-```
-
-3. Install dependencies
-```bash
-pnpm install --no-frozen-lockfile
-```
-
-4. Build ElizaOS
-```bash
-pnpm build
-```
-
-### Install the Storacha Database Adapter
-
-#### Install in ElizaOS Workspace
-
-1. Install the Storacha package
-```bash
-pnpm add @storacha/adapter-storacha
-```
-
-2. Add the Storacha Adapter to the agent runtime
-```diff
---- a/agent/src/index.ts
-+++ b/agent/src/index.ts
-@@ -7,6 +7,7 @@ import { LensAgentClient } from "@elizaos/client-lens";
- import { SlackClientInterface } from "@elizaos/client-slack";
- import { TelegramClientInterface } from "@elizaos/client-telegram";
- import { TwitterClientInterface } from "@elizaos/client-twitter";
-+import { DatabaseAdapter } from "@storacha/elizaos-adapter";
- import {
-     AgentRuntime,
-     CacheManager,
-@@ -677,8 +678,12 @@ async function startAgent(
-             fs.mkdirSync(dataDir, { recursive: true });
-         }
- 
--        db = initializeDatabase(dataDir) as IDatabaseAdapter &
--            IDatabaseCacheAdapter;
-+        db = new DatabaseAdapter({
-+            agentPrivateKey: process.env.STORACHA_AGENT_PRIVATE_KEY,
-+            delegation: process.env.STORACHA_AGENT_DELEGATION,
-+        });
- 
-         await db.init();
-```
+1. **Install the Database Adapter**:
+   ```bash
+   pnpm add @storacha/elizaos-adapter
+   ```
 
 2. **Update the Database Configuration**:
    Modify the [database configuration](https://github.com/elizaOS/eliza-starter/blob/main/src/database/index.ts#L7) to load the Database Adapter:
