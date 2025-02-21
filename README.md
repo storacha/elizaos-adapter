@@ -18,15 +18,38 @@ Before getting started, ensure you have:
 
 ## Quick Start
 
-### Install ElizaOS
+### Install Eliza Starter Kit + Database Adapter
 
-1. Click to create a new repository based on Eliza Starter Kit template
+1. Click to create a new repository based on Eliza Starter Kit template. The following template already provides the database adapter integrated for  you:
+- [Create new repo](https://github.com/new?template_name=eliza-starter&template_owner=storacha)
 
-- https://github.com/new?template_name=eliza-starter&template_owner=elizaOS
+### Configure Environment Variables
 
-or checkout the [latest version](https://github.com/elizaOS/eliza-starter/tree/main).
+1. Copy the example environment file:
+```bash
+cp .env.example .env
+```
+2. Generate the `STORACHA_AGENT_PRIVATE_KEY`:
+```bash
+w3 key create
+```
+- Copy the PK `MgCYJE...Ig3Kk=` and add it to the `STORACHA_AGENT_PRIVATE_KEY`.
+- Copy the Agent DID key: `did:key:...` to create the Agent Delegation.
+
+3. Generate the `STORACHA_AGENT_DELEGATION`:
+- Replace the `AGENT_DID_KEY` with the DID Key you copied in the previous step, and then execute the command:
+```bash
+w3 delegation create AGENT_DID_KEY --can 'store/add' --can 'filecoin/offer' --can 'upload/add' --can 'space/blob/add' --can 'space/index/add' | base64
+```
+- Copy the base64 encoded content, and add to the `STORACHA_AGENT_DELEGATION` environment variable.
+
 
 ### Set up the Database Adapter
+
+In order to use the latest version of the [main Eliza Starter Kit](https://github.com/elizaOS/eliza-starter), you need to create your repo directly from the main template:
+- [Click to create a new repo](https://github.com/new?template_name=eliza-starter&template_owner=elizaOS)
+
+In this case you still need to integrate the Database Adapter into the Agent Runtime by following the steps:
 
 1. Install the Database Adapter:
 ```bash
@@ -90,25 +113,6 @@ pnpm add @storacha/adapter-storacha
          await db.init();
 ```
 
-### Configure Environment Variables
-
-1. Copy the example environment file:
-```bash
-cp .env.example .env
-```
-2. Generate the `STORACHA_AGENT_PRIVATE_KEY`:
-```bash
-w3 key create
-```
-- Copy the PK `MgCYJE...Ig3Kk=` and add it to the `STORACHA_AGENT_PRIVATE_KEY`.
-- Copy the Agent DID key: `did:key:...` to create the Agent Delegation.
-
-3. Generate the `STORACHA_AGENT_DELEGATION`:
-- Replace the `AGENT_DID_KEY` with the DID Key you copied in the previous step, and then execute the command:
-```bash
-w3 delegation create AGENT_DID_KEY --can 'store/add' --can 'filecoin/offer' --can 'upload/add' --can 'space/blob/add' --can 'space/index/add' | base64
-```
-- Copy the base64 encoded content, and add to the `STORACHA_AGENT_DELEGATION` environment variable.
 
 
 ## Roadmap & Features
